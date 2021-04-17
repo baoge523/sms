@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.manage.sys.sms.dao.IUserMessageMapper">
+    <sql id="table_name">TR_USER_MESSAGE</sql>
+    <sql id="table_message">TD_MESSAGE</sql>
+
+    <sql id="base_columns">
+        m.id,m.header,m.content,m.level,m.status,m.creator,m.create_time,m.send_time,r.status as read_status
+    </sql>
+
+    <resultMap id="message_result_map" type="com.manage.sys.sms.api.entity.MessageEntity">
+        <id property="id" column="id"/>
+        <result property="header" column="header"/>
+        <result property="content" column="content"/>
+        <result property="level" column="level"/>
+        <result property="status" column="status"/>
+        <result property="readStatus" column="read_status"/>
+        <result property="creator" column="creator"/>
+        <result property="createTime" column="create_time"/>
+        <result property="sendTime" column="send_time"/>
+    </resultMap>
+
+    <insert id="insertRelation">
+        INSERT INTO
+        <include refid="table_name"/>
+        (
+          user_id,
+          message_id,
+          status
+        )
+        VALUES
+        (
+         #{userId},
+         #{messageId},
+         0
+        )
+    </insert>
+
+    <update id="updateRelation">
+        UPDATE
+        <include refid="table_name"/>
+        SET
+        status = 1
+        where user_id =  #{userId} AND message_id = #{messageId}
+    </update>
+
+
+    <insert id="insertRelationBatch">
+        INSERT INTO
+        <include refid="table_name"/>
+        (
+        user_id,
+        message_id,
+        status
+        )
+        VALUES
+        <foreach collection="userIds" open="" close="" separator="," item="id">
+            (
+            #{id},
+            #{messageId},
+            0
+            )
+        </foreach>
+    </insert>
+
+    <select id="listMessagesByUserId" parameterType="com.manage.sys.sms.api.entity.query.QueryParam" resultMap="message_result_map">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/> AS r
+        INNER JOIN
+        <include refid="table_message"/> AS m ON r.message_id = m.id
+        <where>
+            <if test="conditions.userId != null">
+                AND r.user_id = #{conditions.userId}
+            </if>
+            <if test="conditions.status != null">
+                AND r.status = #{conditions.status}
+            </if>
+            <if test="name != null">
+                AND m.header like concat('%',#{name},'%')
+            </if>
+            <if test="conditions.level != null">
+                AND m.level = #{conditions.level}
+            </if>
+        </where>
+        ORDER BY m.send_time DESC
+    </select>
+
+</mapper>

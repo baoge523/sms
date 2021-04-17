@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.manage.sys.sms.dao.IMessageMapper">
+
+    <sql id="table_name">TD_MESSAGE</sql>
+    <sql id="table_relation">TD_USER_MESSAGE</sql>
+    <sql id="base_columns">
+        id,header,content,level,status,creator,create_time,send_time
+    </sql>
+    <sql id="base_columns_without_id">
+        header,content,level,status,creator,create_time,send_time
+    </sql>
+
+
+    <resultMap id="message_result_map" type="com.manage.sys.sms.api.entity.MessageEntity">
+        <id property="id" column="id"/>
+        <result property="header" column="header"/>
+        <result property="content" column="content"/>
+        <result property="level" column="level"/>
+        <result property="status" column="status"/>
+        <result property="creator" column="creator"/>
+        <result property="createTime" column="create_time"/>
+        <result property="sendTime" column="send_time"/>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" keyColumn="id" useGeneratedKeys="true" parameterType="com.manage.sys.sms.api.entity.StallEntity">
+        INSERT INTO
+        <include refid="table_name"/>
+        (
+        <include refid="base_columns_without_id"/>
+        )
+        VALUES
+        (
+         #{header},
+         #{content},
+         #{level},
+         #{status},
+         #{creator},
+         now()
+         <if test="sendTime != null">
+             ,now()
+         </if>
+        <if test="sendTime == null">
+            , null
+        </if>
+        )
+    </insert>
+
+    <update id="update" parameterType="com.manage.sys.sms.api.entity.MessageEntity" >
+        UPDATE
+        <include refid="table_name"/>
+        <set>
+            <if test="header != null">
+                header = #{header},
+            </if>
+            <if test="content != null">
+                content = #{content},
+            </if>
+            <if test="level != null">
+                level = #{level},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="sendTime != null">
+                send_time = now()
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.util.Set">
+        DELETE FROM
+        <include refid="table_name"/>
+        <where>
+            id IN
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+
+
+    <select id="getById" parameterType="Integer" resultMap="message_result_map">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id = #{id}
+    </select>
+
+
+    <select id="list" parameterType="com.manage.sys.sms.api.entity.query.QueryParam" resultMap="message_result_map">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/>
+        <where>
+            <if test="name != null">
+                AND header like concat('%',#{name},'%')
+            </if>
+            <if test="conditions.status != null">
+                AND status = #{conditions.status}
+            </if>
+            <if test="conditions.level != null">
+                AND level = #{conditions.level}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

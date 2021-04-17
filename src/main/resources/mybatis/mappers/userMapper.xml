@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.manage.sys.sms.dao.IUserMapper">
+
+    <sql id="table_name">TM_USER</sql>
+    <sql id="base_columns">id,code,name,description,password,id_card,phone,email,is_manager,creator,create_time,updater,update_time</sql>
+    <sql id="base_columns_without_id">code,name,description,password,id_card,phone,email,is_manager,creator,create_time,updater,update_time</sql>
+
+    <resultMap id="userResultMap" type="com.manage.sys.sms.api.entity.UserEntity">
+        <id property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="description" column="description"/>
+        <result property="password" column="password"/>
+        <result property="idCard" column="id_card"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="isManager" column="is_manager"/>
+        <result property="creator" column="creator"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updater" column="updater"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.manage.sys.sms.api.entity.UserEntity">
+        INSERT INTO
+        <include refid="table_name"/>
+        (
+        <include refid="base_columns_without_id"/>
+        )
+        VALUES
+        (
+         #{code},
+         #{name},
+         #{description},
+         #{password},
+         #{idCard},
+         #{phone},
+         #{email},
+         #{isManager},
+         #{creator},
+         now(),
+         #{updater},
+         now()
+        )
+    </insert>
+
+    <update id="update" parameterType="com.manage.sys.sms.api.entity.UserEntity" >
+        UPDATE
+        <include refid="table_name"/>
+        <set>
+            code = #{code},
+            name = #{name},
+            description = #{description},
+            password = #{password},
+            id_card = #{idCard},
+            phone = #{phone},
+            email = #{email},
+            updater = #{updater},
+            update_time = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.util.Set">
+        DELETE FROM
+        <include refid="table_name"/>
+        <where>
+            id IN
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+
+
+    <select id="getById" parameterType="Integer" resultMap="userResultMap">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id = #{id}
+    </select>
+
+
+    <select id="getUserByUsername" parameterType="String" resultMap="userResultMap">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE code = #{username}
+    </select>
+
+    <select id="list" parameterType="com.manage.sys.sms.api.entity.query.QueryParam" resultMap="userResultMap">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/>
+        <where>
+            AND is_manager = 0
+            <if test="id != null">
+               AND id = #{id}
+            </if>
+            <if test="code != null">
+                AND code = #{code}
+            </if>
+            <if test="name != null">
+                AND name = #{name}
+            </if>
+        </where>
+    </select>
+
+</mapper>

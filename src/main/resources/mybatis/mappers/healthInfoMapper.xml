@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.manage.sys.sms.dao.IHealthInfoMapper">
+
+    <sql id="table_name">TD_HEALTH_INFO</sql>
+    <sql id="table_relation">TD_USER</sql>
+    <sql id="base_columns">
+        id,user_id,username,id_card,is_touch,is_live,status,current_symptom,current_heat,creator,create_time,updater,update_time
+    </sql>
+    <sql id="base_columns_without_id">
+        user_id,username,id_card,is_touch,is_live,status,current_symptom,current_heat,creator,create_time,updater,update_time
+    </sql>
+
+
+    <resultMap id="health_result_map" type="com.manage.sys.sms.api.entity.HealthInfo">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="idCard" column="id_card"/>
+        <result property="isTouch" column="is_touch"/>
+        <result property="isLive" column="is_live"/>
+        <result property="status" column="status"/>
+        <result property="currentSymptom" column="current_symptom" typeHandler="com.manage.sys.sms.dao.typehanlder.List2StringTypeHandler"/>
+        <result property="currentHeat" column="current_heat"/>
+        <result property="creator" column="creator"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updater" column="updater"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <insert id="insert" keyProperty="id" keyColumn="id" useGeneratedKeys="true" parameterType="com.manage.sys.sms.api.entity.StallEntity">
+        INSERT INTO
+        <include refid="table_name"/>
+        (
+        <include refid="base_columns_without_id"/>
+        )
+        VALUES
+        (
+        #{userId},
+        #{username},
+        #{idCard},
+        #{isTouch},
+        #{isLive},
+        #{status},
+        #{currentSymptom,typeHandler=com.manage.sys.sms.dao.typehanlder.List2StringTypeHandler},
+        #{currentHeat},
+        #{creator},
+        now(),
+        #{updater},
+        now()
+        )
+    </insert>
+
+    <update id="update" parameterType="com.manage.sys.sms.api.entity.HealthInfo" >
+        UPDATE
+        <include refid="table_name"/>
+        <set>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="idCard != null">
+                id_card = #{idCard},
+            </if>
+            <if test="isTouch != null">
+                is_touch = #{isTouch},
+            </if>
+            <if test="isLive != null">
+                 is_live = #{isLive},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="currentSymptom != null">
+                current_symptom = #{currentSymptom,typeHandler=com.manage.sys.sms.dao.typehanlder.List2StringTypeHandler},
+            </if>
+            <if test="currentHeat != null">
+                current_heat = #{currentHeat},
+            </if>
+            <if test="updater != null">
+                updater = #{updater},
+            </if>
+                update_time = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.util.Set">
+        DELETE FROM
+        <include refid="table_name"/>
+        <where>
+            id IN
+            <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+
+
+    <select id="getById" parameterType="Integer" resultMap="health_result_map">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE id = #{id}
+    </select>
+
+    <select id="obtainByUserId" parameterType="Integer" resultMap="health_result_map">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/>
+        WHERE user_id= #{userId}
+    </select>
+
+    <select id="list" parameterType="com.manage.sys.sms.api.entity.query.QueryParam" resultMap="health_result_map">
+        SELECT
+        <include refid="base_columns"/>
+        FROM
+        <include refid="table_name"/>
+        <where>
+            <if test="name != null">
+                AND username like concat('%',#{name},'%')
+            </if>
+        </where>
+    </select>
+
+</mapper>
